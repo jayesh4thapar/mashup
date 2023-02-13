@@ -1,6 +1,5 @@
 import smtplib
 import urllib
-import urllib.error
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -14,7 +13,7 @@ from moviepy.editor import concatenate_audioclips, AudioFileClip
 from youtube_search import YoutubeSearch
 import json
 from pytube import Playlist,YouTube
-from pytube.exceptions import VideoUnavailable,MembersOnly,LiveStreamError,ExtractError,HTMLParseError,AgeRestrictedError,PytubeError,VideoPrivate,VideoRegionBlocked,RecordingUnavailable
+from pytube.exceptions import VideoUnavailable
 import os
 from pydub import AudioSegment
 
@@ -28,26 +27,27 @@ def download_videos_and_convert_into_audio(singer, n):
     temp_videos = list(set(temp_videos))
     videos = []
     idx = 1
-    count=1
+    for video in temp_videos:
+        if idx > n:
+            break
+        yt = YouTube(video)
+        if yt.length/60 < 5:
+            videos.append(video)
+            idx += 1
     destination = "Video_files"
     print('downloading...')
-    for video in temp_videos:
-      if idx > n:
-        break
-      yt = YouTube(video)
-      if yt.length/int(60) < 5:
-          videos.append(video)
-          idx += 1
-          with st.spinner(text="Downloading song "+ str(count)+ "..."):
-            count+=1
-            try:
-              yt= YouTube(video)
-              video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
-              out_file = video_1.download(output_path=destination)
-              basePath, extension = os.path.splitext(out_file)
-              video = VideoFileClip(os.path.join(basePath + ".mp4"))
-            except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable or urllib.error.URLError or LiveStreamError:
-              continue
+    count=1
+    for video in videos:
+      with st.spinner(text="Downloading song "+ str(count)+ "..."):
+        count+=1
+        try:
+          yt= YouTube(video)
+          video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+          out_file = video_1.download(output_path=destination)
+          basePath, extension = os.path.splitext(out_file)
+          video = VideoFileClip(os.path.join(basePath + ".mp4"))
+        except VideoUnavailable:
+          print('')
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
