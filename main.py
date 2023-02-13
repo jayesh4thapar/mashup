@@ -1,5 +1,6 @@
 import smtplib
 import urllib
+import urllib.error
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -13,10 +14,9 @@ from moviepy.editor import concatenate_audioclips, AudioFileClip
 from youtube_search import YoutubeSearch
 import json
 from pytube import Playlist,YouTube
-from pytube.exceptions import VideoUnavailable
+from pytube.exceptions import VideoUnavailable,MembersOnly,LiveStreamError,ExtractError,HTMLParseError,AgeRestrictedError,PytubeError,VideoPrivate,VideoRegionBlocked,RecordingUnavailable
 import os
 from pydub import AudioSegment
-
 def download_videos_and_convert_into_audio(singer, n):
     url="https://www.youtube.com/results?search_query=" + singer + " music video"
     url=url.replace(" ","%20")
@@ -27,27 +27,26 @@ def download_videos_and_convert_into_audio(singer, n):
     temp_videos = list(set(temp_videos))
     videos = []
     idx = 1
-    for video in temp_videos:
-        if idx > n:
-            break
-        yt = YouTube(video)
-        if yt.length/60 < 5:
-            videos.append(video)
-            idx += 1
+    count=1
     destination = "Video_files"
     print('downloading...')
-    count=1
-    for video in videos:
-      with st.spinner(text="Downloading song "+ str(count)+ "..."):
-        count+=1
-        try:
-          yt= YouTube(video)
-          video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
-          out_file = video_1.download(output_path=destination)
-          basePath, extension = os.path.splitext(out_file)
-          video = VideoFileClip(os.path.join(basePath + ".mp4"))
-        except VideoUnavailable:
-          print('')
+    for video in temp_videos:
+      if idx > n:
+        break
+      yt = YouTube(video)
+      if yt.length/int(60) < 5:
+          videos.append(video)
+          idx += 1
+          with st.spinner(text="Downloading song "+ str(count)+ "..."):
+            count+=1
+            try:
+              yt= YouTube(video)
+              video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+              out_file = video_1.download(output_path=destination)
+              basePath, extension = os.path.splitext(out_file)
+              video = VideoFileClip(os.path.join(basePath + ".mp4"))
+            except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable or urllib.error.URLError or LiveStreamError:
+              continue
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
@@ -63,14 +62,12 @@ def cut_first_y_sec(singer, n, y):
   concat = concatenate_audioclips(clips)
   concat.write_audiofile('concat.mp3')
   print('cutting done')
-
 def zipit(file):
     destination='mashup.zip'
     zip_file=zipfile.ZipFile(destination,'w')
     zip_file.write(file,compress_type=zipfile.ZIP_DEFLATED)
     zip_file.close()
     return destination
-
 def mail(item,em):
     smtp_port = 587           
     smtp_server = "smtp.gmail.com" 
@@ -107,7 +104,6 @@ def mail(item,em):
       print()
       TIE_server.quit()
     st.success('Success! Your mashup will shortly arrive in your mailbox :)')
-
 def script(sn,em,no,dur):
     singer = sn
     n = no
@@ -116,7 +112,6 @@ def script(sn,em,no,dur):
     cut_first_y_sec(singer,n,y)
     file='concat.mp3'
     mail(zipit(file),em)
-
 with st.form(key="form1"):
     singer_name=st.text_input(label="Singer Name",value='')
     no_of_vids=st.number_input(label="\# of videos",value=0)
