@@ -1,4 +1,5 @@
 import smtplib
+import urllib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -16,17 +17,34 @@ import os
 from pydub import AudioSegment
 
 def download_videos_and_convert_into_audio(singer, n):
-  search_query = singer + ' music video'
-  results = YoutubeSearch(search_query, max_results=n).to_dict()
-  print('downloading...')
-  for v in results:
-    yt= YouTube('https://www.youtube.com' + v['url_suffix'])
-    video =yt.streams.filter(file_extension='mp4').first()
+    url="https://www.youtube.com/results?search_query=" + singer + " music video"
+    url=url.replace(" ","%20")
+    html = urllib.request.urlopen(url)
+    video_ids = re.findall(r"watch\?v=(\S{11})", html.read().decode())
+    temp_videos = ["https://www.youtube.com/watch?v=" + video_id for video_id in video_ids]
+    #make list values unique
+    temp_videos = list(set(temp_videos))
+    videos = []
+    idx = 1
+    for video in temp_videos:
+        if idx > n:
+            break
+        yt = YouTube(video)
+        if yt.length/60 < 5.00:
+            videos.append(video)
+            idx += 1
     destination = "Video_files"
-    out_file = video.download(output_path=destination)
-    basePath, extension = os.path.splitext(out_file)
-    video = VideoFileClip(os.path.join(basePath + ".mp4"))
-  print('downloaded')
+    print('downloading...')
+    count=1
+    for video in videos:
+      st.success("Downloading song "+ str(count)+ "...")
+      count+=1
+      yt= YouTube(video)
+      video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+      out_file = video_1.download(output_path=destination)
+      basePath, extension = os.path.splitext(out_file)
+      video = VideoFileClip(os.path.join(basePath + ".mp4"))
+    print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
   print('cutting...')
@@ -41,6 +59,7 @@ def cut_first_y_sec(singer, n, y):
   concat = concatenate_audioclips(clips)
   concat.write_audiofile('concat.mp3')
   print('cutting done')
+  st.success('Creating your mashup...')
 
 def zipit(file):
     destination='mashup.zip'
@@ -83,6 +102,7 @@ def mail(item,em):
     print(f"Email sent to: {email_to}")
     print()
     TIE_server.quit()
+    st.success('Success! Your mashup will shortly arrive in your mailbox :)')
 
 def script(sn,em,no,dur):
     singer = sn
@@ -112,7 +132,6 @@ with st.form(key="form1"):
       else:
         with st.spinner(text = 'Extracting information…'):
             sleep(3)
-        st.success('Success! Your mashup will shortly arrive in your mailbox :)')
         folder = 'Video_files'
         for filename in os.listdir(folder):
           file_path = os.path.join(folder, filename)  
