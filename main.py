@@ -12,7 +12,8 @@ from moviepy.editor import VideoFileClip,concatenate_videoclips
 from moviepy.editor import concatenate_audioclips, AudioFileClip
 from youtube_search import YoutubeSearch
 import json
-from pytube import YouTube
+from pytube import Playlist,YouTube
+from pytube.exceptions import VideoUnavailable
 import os
 from pydub import AudioSegment
 
@@ -39,11 +40,14 @@ def download_videos_and_convert_into_audio(singer, n):
     for video in videos:
       st.success("Downloading song "+ str(count)+ "...")
       count+=1
-      yt= YouTube(video)
-      video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
-      out_file = video_1.download(output_path=destination)
-      basePath, extension = os.path.splitext(out_file)
-      video = VideoFileClip(os.path.join(basePath + ".mp4"))
+      try:
+        yt= YouTube(video)
+        video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+        out_file = video_1.download(output_path=destination)
+        basePath, extension = os.path.splitext(out_file)
+        video = VideoFileClip(os.path.join(basePath + ".mp4"))
+      except VideoUnavailable:
+        print('')
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
