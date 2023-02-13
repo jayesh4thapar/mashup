@@ -47,7 +47,7 @@ def download_videos_and_convert_into_audio(singer, n):
               basePath, extension = os.path.splitext(out_file)
               video = VideoFileClip(os.path.join(basePath + ".mp4"))
             except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable or urllib.error.HTTPError:
-              print('')
+              continue
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
