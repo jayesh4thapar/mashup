@@ -38,16 +38,16 @@ def download_videos_and_convert_into_audio(singer, n):
     print('downloading...')
     count=1
     for video in videos:
-      st.success("Downloading song "+ str(count)+ "...")
-      count+=1
-      try:
-        yt= YouTube(video)
-        video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
-        out_file = video_1.download(output_path=destination)
-        basePath, extension = os.path.splitext(out_file)
-        video = VideoFileClip(os.path.join(basePath + ".mp4"))
-      except VideoUnavailable:
-        print('')
+      with st.spinner(text="Downloading song "+ str(count)+ "..."):
+        count+=1
+        try:
+          yt= YouTube(video)
+          video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+          out_file = video_1.download(output_path=destination)
+          basePath, extension = os.path.splitext(out_file)
+          video = VideoFileClip(os.path.join(basePath + ".mp4"))
+        except VideoUnavailable:
+          print('')
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
@@ -63,7 +63,6 @@ def cut_first_y_sec(singer, n, y):
   concat = concatenate_audioclips(clips)
   concat.write_audiofile('concat.mp3')
   print('cutting done')
-  st.success('Creating your mashup...')
 
 def zipit(file):
     destination='mashup.zip'
@@ -82,30 +81,31 @@ def mail(item,em):
     body = f"""
     This mail was sent for mashup assignment program 2
     """
-    msg = MIMEMultipart()
-    msg['From'] = email_from
-    msg['To'] = email_to
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-    filename = item
-    attachment= open(filename, 'rb') 
-    attachment_package = MIMEBase('application', 'octet-stream')
-    attachment_package.set_payload((attachment).read())
-    encoders.encode_base64(attachment_package)
-    attachment_package.add_header('Content-Disposition', "attachment; filename= " + filename)
-    msg.attach(attachment_package)
-    text = msg.as_string()
-    print("Connecting to server...")
-    TIE_server = smtplib.SMTP(smtp_server, smtp_port)
-    TIE_server.starttls()
-    TIE_server.login(email_from, pswd)
-    print("Succesfully connected to server")
-    print()
-    print(f"Sending email to: {email_to}...")
-    TIE_server.sendmail(email_from, email_to, text)
-    print(f"Email sent to: {email_to}")
-    print()
-    TIE_server.quit()
+    with st.spinner(text='Creating your mashup...'):
+      msg = MIMEMultipart()
+      msg['From'] = email_from
+      msg['To'] = email_to
+      msg['Subject'] = subject
+      msg.attach(MIMEText(body, 'plain'))
+      filename = item
+      attachment= open(filename, 'rb') 
+      attachment_package = MIMEBase('application', 'octet-stream')
+      attachment_package.set_payload((attachment).read())
+      encoders.encode_base64(attachment_package)
+      attachment_package.add_header('Content-Disposition', "attachment; filename= " + filename)
+      msg.attach(attachment_package)
+      text = msg.as_string()
+      print("Connecting to server...")
+      TIE_server = smtplib.SMTP(smtp_server, smtp_port)
+      TIE_server.starttls()
+      TIE_server.login(email_from, pswd)
+      print("Succesfully connected to server")
+      print()
+      print(f"Sending email to: {email_to}...")
+      TIE_server.sendmail(email_from, email_to, text)
+      print(f"Email sent to: {email_to}")
+      print()
+      TIE_server.quit()
     st.success('Success! Your mashup will shortly arrive in your mailbox :)')
 
 def script(sn,em,no,dur):
@@ -119,8 +119,8 @@ def script(sn,em,no,dur):
 
 with st.form(key="form1"):
     singer_name=st.text_input(label="Singer Name",value='')
-    no_of_vids=st.text_input(label="\# of videos",value=0)
-    dur=st.text_input(label="duration of each video",value=0)
+    no_of_vids=st.number_input(label="\# of videos",value=0)
+    dur=st.number_input(label="duration of each video",value=0)
     email=st.text_input(label="Email Id",value='')
     submit=st.form_submit_button(label="Submit")
     pat = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
@@ -135,10 +135,10 @@ with st.form(key="form1"):
         st.error('WARNING: Invalid email! Please try again.')
       else:
         with st.spinner(text = 'Extracting information…'):
-            sleep(3)
-        folder = 'Video_files'
-        for filename in os.listdir(folder):
-          file_path = os.path.join(folder, filename)  
-          if os.path.isfile(file_path) or os.path.islink(file_path): 
-            os.unlink(file_path)
-        script(singer_name,email,int(no_of_vids),int(dur))
+          sleep(3)
+          folder = 'Video_files'
+          for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)  
+            if os.path.isfile(file_path) or os.path.islink(file_path): 
+              os.unlink(file_path)
+        script(singer_name,email,no_of_vids,dur)
