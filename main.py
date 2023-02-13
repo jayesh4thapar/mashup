@@ -13,7 +13,7 @@ from moviepy.editor import concatenate_audioclips, AudioFileClip
 from youtube_search import YoutubeSearch
 import json
 from pytube import Playlist,YouTube
-from pytube.exceptions import VideoUnavailable
+from pytube.exceptions import VideoUnavailable,MembersOnly,LiveStreamError,ExtractError,HTMLParseError,AgeRestrictedError
 import os
 from pydub import AudioSegment
 
@@ -46,7 +46,7 @@ def download_videos_and_convert_into_audio(singer, n):
           out_file = video_1.download(output_path=destination)
           basePath, extension = os.path.splitext(out_file)
           video = VideoFileClip(os.path.join(basePath + ".mp4"))
-        except VideoUnavailable:
+        except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly:
           print('')
     print('downloaded')
 
