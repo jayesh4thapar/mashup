@@ -1,5 +1,6 @@
 import smtplib
 import urllib
+import urllib.error
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
@@ -45,7 +46,7 @@ def download_videos_and_convert_into_audio(singer, n):
               out_file = video_1.download(output_path=destination)
               basePath, extension = os.path.splitext(out_file)
               video = VideoFileClip(os.path.join(basePath + ".mp4"))
-            except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable:
+            except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable or urllib.error.HTTPError:
               print('')
     print('downloaded')
 
