@@ -27,27 +27,26 @@ def download_videos_and_convert_into_audio(singer, n):
     temp_videos = list(set(temp_videos))
     videos = []
     idx = 1
-    for video in temp_videos:
-        if idx > n:
-            break
-        yt = YouTube(video)
-        if yt.length/60 < 5:
-            videos.append(video)
-            idx += 1
+    count=1
     destination = "Video_files"
     print('downloading...')
-    count=1
-    for video in videos:
-      with st.spinner(text="Downloading song "+ str(count)+ "..."):
-        count+=1
-        try:
-          yt= YouTube(video)
-          video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
-          out_file = video_1.download(output_path=destination)
-          basePath, extension = os.path.splitext(out_file)
-          video = VideoFileClip(os.path.join(basePath + ".mp4"))
-        except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable:
-          print('')
+    for video in temp_videos:
+      if idx > n:
+        break
+      yt = YouTube(video)
+      if yt.length/int(60) < 5:
+          videos.append(video)
+          idx += 1
+          with st.spinner(text="Downloading song "+ str(count)+ "..."):
+            count+=1
+            try:
+              yt= YouTube(video)
+              video_1 =yt.streams.filter(file_extension='mp4',res="360p").first()
+              out_file = video_1.download(output_path=destination)
+              basePath, extension = os.path.splitext(out_file)
+              video = VideoFileClip(os.path.join(basePath + ".mp4"))
+            except VideoUnavailable or ExtractError or AgeRestrictedError or HTMLParseError or LiveStreamError or MembersOnly or PytubeError or VideoPrivate or VideoRegionBlocked or RecordingUnavailable:
+              print('')
     print('downloaded')
 
 def cut_first_y_sec(singer, n, y):
