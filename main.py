@@ -70,7 +70,7 @@ def zipit(file):
     zip_file.close()
     return destination
 def mail(item,em):
-    smtp_port = 587           
+    smtp_port = 26          
     smtp_server = "smtp.gmail.com" 
     email_from = "jsaxena_be20@thapar.edu"
     email_to = em
