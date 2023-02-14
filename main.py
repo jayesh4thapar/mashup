@@ -46,7 +46,7 @@ def download_videos_and_convert_into_audio(singer, n):
           out_file = video_1.download(output_path=destination)
           basePath, extension = os.path.splitext(out_file)
           video = VideoFileClip(os.path.join(basePath + ".mp4"))
-        except VideoUnavailable:
+        except:
           print('')
     print('downloaded')
 
